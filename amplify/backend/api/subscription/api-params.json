@@ -1,0 +1,56 @@
+{
+    "paths": [
+        {
+            "name": "/subscription",
+            "lambdaFunction": "subscribeUser",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/POST",
+                    "/GET",
+                    "/PUT",
+                    "/PATCH",
+                    "/DELETE"
+                ]
+            }
+        },
+        {
+            "name": "/authorize",
+            "lambdaFunction": "subscribeUser",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/POST",
+                    "/GET",
+                    "/PUT",
+                    "/PATCH",
+                    "/DELETE"
+                ]
+            }
+        }
+    ],
+    "resourceName": "subscription",
+    "apiName": "subscription",
+    "functionArns": [
+        {
+            "lambdaFunction": "subscribeUser"
+        }
+    ],
+    "privacy": {
+        "auth": 2,
+        "unauth": 0,
+        "authRoleName": "amplify-ireadify-dev-144217-authRole",
+        "unAuthRoleName": "amplify-ireadify-dev-144217-unauthRole"
+    },
+    "dependsOn": [
+        {
+            "category": "function",
+            "resourceName": "subscribeUser",
+            "attributes": [
+                "Name",
+                "Arn"
+            ]
+        }
+    ],
+    "uuid": "f80f1d32"
+}

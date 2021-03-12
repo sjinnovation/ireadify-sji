@@ -1,0 +1,434 @@
+type Author
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow admins to create, update and delete books
+      { allow: groups, groups: ["owner"] }
+      # allow all authenticated users to view books
+      { allow: private, operations: [read] }
+    ]
+  )
+  @key(
+    name: "authorByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "authorByCreatedAt"
+  ) {
+  id: ID!
+  name: String!
+  description: String!
+  status: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  image: String!
+  isDeleted: Int!
+  books: [Book] @connection(keyName: "byAuthor", fields: ["id"])
+}
+
+type Book
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow admins to create, update and delete books
+      { allow: groups, groups: ["owner"] }
+      # allow all authenticated users to view books
+      { allow: private, operations: [read] }
+    ]
+  )
+  @key(
+    name: "bookByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "bookByCreatedAt"
+  )
+  @key(name: "byAuthor", fields: ["authorId"]) {
+  id: ID!
+  title: String!
+  description: String!
+  image: String!
+  ageId: ID!
+  age: AgeRange @connection(fields: ["ageId"])
+  region: String!
+  isbn: String
+  narrator: String
+  status: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+  book: String!
+  bookType: BookType!
+  authorName: String!
+  authorId: ID!
+  duration: Int!
+  authors: Author @connection(fields: ["authorId"])
+  languageId: ID!
+  languages: Language @connection(fields: ["languageId"])
+  ratings: [Rating] @connection(keyName: "byRating", fields: ["id"])
+}
+
+enum BookType {
+  AUDIO
+  EPUB
+}
+
+type Language
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow admins to create, update and delete books
+      { allow: groups, groups: ["owner"] }
+      # allow all authenticated users to view books
+      { allow: private, operations: [read] }
+    ]
+  ) {
+  id: ID!
+  name: String!
+  status: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Video
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow admins to create, update and delete books
+      { allow: groups, groups: ["owner"] }
+      # allow all authenticated users to view books
+      { allow: private, operations: [read] }
+    ]
+  )
+  @key(
+    name: "videoByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "videoByCreatedAt"
+  ) {
+  id: ID!
+  title: String!
+  description: String!
+  ageId: ID!
+  age: AgeRange @connection(fields: ["ageId"])
+  video: String!
+  status: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  duration: Int!
+  image: String!
+  isDeleted: Int!
+}
+
+type AgeRange
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow admins to create, update and delete books
+      { allow: groups, groups: ["owner"] }
+      # allow all authenticated users to view books
+      { allow: private, operations: [read] }
+    ]
+  )
+  @key(
+    name: "ageByCreatedAt"
+    fields: ["isDeleted", "order"]
+    queryField: "ageByCreatedAt"
+  ) {
+  id: ID!
+  name: String!
+  isDeleted: Int!
+  order: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Analytics
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow all authenticated users to create and read
+      { allow: private }
+    ]
+  ) {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  bookId: ID!
+  books: Book @connection(fields: ["bookId"])
+  videoId: ID!
+  videos: Video @connection(fields: ["videoId"])
+  openedDate: AWSDateTime!
+  totalTime: Int
+  activity: [Activity]
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Activity {
+  id: ID!
+  startTime: AWSDateTime!
+  endTime: AWSDateTime!
+  totalTime: Int!
+  createdAt: AWSDateTime!
+}
+
+type FavoriteBook
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow all authenticated users to create and read
+      { allow: private }
+    ]
+  ) {
+  id: ID!
+  email: String!
+  bookId: ID!
+  books: Book @connection(fields: ["bookId"])
+  isLiked: Boolean!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type UserSubscription
+  @model(subscriptions: null, mutations: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow all authenticated users to create and read
+      { allow: private }
+    ]
+  )
+  @key(
+    name: "userBySubscriptionId"
+    fields: ["subscriptionId"]
+    queryField: "userBySubscriptionId"
+  )
+  @key(name: "userByEmail", fields: ["email"], queryField: "userByemail") {
+  id: ID!
+  email: String!
+  subscriptionId: String!
+  isActive: Boolean
+  istrailPeriod: Boolean
+  firstPaymentDone: Boolean
+  subscriptionStartDate: AWSDateTime!
+  nextBillingDate: AWSDateTime!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  lastSummary: String
+  type: SubscriptionType
+  lastPaymentFailed: Boolean
+}
+
+
+enum SubscriptionType {
+  PAYPAL
+  AUTHORIZENET
+}
+type Testimonial
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "testimonialByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "testimonialByCreatedAt"
+  ) {
+  id: ID!
+  name: String!
+  title: String!
+  testimonial: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  image: String!
+  isDeleted: Int!
+}
+
+type ContactAdmin
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to create
+      { allow: public, operations: [create] }
+      # allow admins to read
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "contactUsByDateCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "contactUsByDateCreatedAt"
+  ) {
+  id: ID!
+  email: String!
+  name: String!
+  message: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+
+type Faq
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "faqByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "faqByCreatedAt"
+  ) {
+  id: ID!
+  topic: String!
+  question: String!
+  answer: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+
+type About
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "AboutByOrder"
+    fields: ["isDeleted", "order"]
+    queryField: "AboutByOrder"
+  ) {
+  id: ID!
+  title: String!
+  content: String!
+  image: String!
+  order: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+
+type PrivacyPolicy
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "PrivacyPolicyByOrder"
+    fields: ["isDeleted", "order"]
+    queryField: "PrivacyPolicyByOrder"
+  ) {
+  id: ID!
+  title: String!
+  content: String!
+  order: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+
+type TermsConditions
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "TermsConditionsByOrder"
+    fields: ["isDeleted", "order"]
+    queryField: "TermsConditionsByOrder"
+  ) {
+  id: ID!
+  title: String!
+  content: String!
+  order: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+
+type Rating
+  @model(subscriptions: null)
+  @searchable
+  @auth(
+    rules: [
+      # allow all authenticated users to create and read
+      { allow: private }
+    ]
+  )
+  @key(name: "byRating", fields: ["bookId"]) {
+  id: ID!
+  email: String!
+  bookId: ID!
+  books: Book @connection(fields: ["bookId"])
+  isRated: Boolean!
+  myRating: Int!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+type Blog
+  @model(subscriptions: null)
+  @searchable
+  @aws_api_key
+  @auth(
+    rules: [
+      # allow all  users to read
+      { allow: public, operations: [read] }
+      # allow admins to create, read, update and delete
+      { allow: groups, groups: ["owner"] }
+    ]
+  )
+  @key(
+    name: "blogsByCreatedAt"
+    fields: ["isDeleted", "createdAt"]
+    queryField: "blogsByCreatedAt"
+  ) {
+  id: ID!
+  title: String!
+  description: String!
+  content: String!
+  headerImage: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  isDeleted: Int!
+}
+

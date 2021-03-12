@@ -1,0 +1,138 @@
+import React, { useState } from 'react'
+import { useForm } from "react-hook-form";
+import { graphqlOperation, API } from 'aws-amplify';
+import Layout from '../../../components/admin/layout/Layout';
+import { createTermsConditions } from '../../../api/termsConditions/mutations'
+import SuccessAlert from '../../../components/admin/SuccessAlert';
+import { isDeleted } from '../../../config/bootstarp'
+import _ from "lodash/fp";
+import CKEditor from 'ckeditor4-react';
+
+const add = () => {
+
+
+    const [fade, setFade] = useState(false);
+    const [successAlert, setSuccessAlert] = useState(false)
+    const [buttonLoading, setButtonLoading] = useState(false)
+    const  [ckContent, setCkContent  ] = useState("")
+
+
+    const { register, errors, handleSubmit, reset } = useForm();
+
+    const onSubmit = async (data) => {
+        try {
+            setButtonLoading(true)
+            setSuccessAlert(false)
+
+            const inputData = {
+                isDeleted: isDeleted.no,
+                title: data.title.trim(),
+                content: data.content,
+                order: data.order.trim(),
+            }
+
+            await API.graphql(graphqlOperation(createTermsConditions, { input: inputData }))
+            setSuccessAlert(true)
+            reset();
+            setCkContent("");
+            setButtonLoading(false)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+
+    const onAlertButtonClose = () => {
+        setFade(true)
+    }
+
+    const onAlertAnimationEnd = () => {
+        setSuccessAlert(false)
+        setFade(false)
+    }
+
+    const  editorChange = ( evt ) => {
+        setCkContent(evt.editor.getData())
+    }
+
+    return (
+
+        <Layout>
+            <SuccessAlert show={successAlert} fade={fade} message={"New Terms & Conditions added"} hideAlert={onAlertButtonClose} animateAlert={onAlertAnimationEnd} />
+            <div className="flex flex-1  flex-col md:flex-row lg:flex-row mx-2">
+
+                <div className="mb-2 border-solid border-gray-300 rounded border shadow-sm w-full">
+                    <div className="bg-blue-500 text-white text-bold px-2 py-3 border-solid border-gray-200 border-b">
+                        Add New Terms & Conditions
+                    </div>
+                    <div className="p-3">
+                        <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
+                            <div className="flex flex-wrap -mx-3 mb-6">
+                                <div className="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                                    <label className="block uppercase tracking-wide text-grey-darker text-xs font-light mb-1">
+                                        Order
+                                    </label>
+                                    <input ref={register({ required: true, min: 1, validate: (value) => { return !!value.trim() } })} name="order" className="appearance-none block w-full bg-grey-200 text-grey-darker border border-grey-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-grey"
+                                        type="number" placeholder="Order in which it will be displayed" />
+                                    {_.get("order.type", errors) === "required" && (<p className="text-red-500 text-xs italic">Please fill out this field.</p>
+                                    )}
+                                    {_.get("order.type", errors) === "min" && (
+                                        <p className="text-red-500 text-xs italic">Order length must be greater than 0</p>
+                                    )}
+
+                                </div>
+                                <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                                    <label className="block uppercase tracking-wide text-grey-darker text-xs font-light mb-1">
+                                        Title
+                                    </label>
+                                    <input ref={register({ required: true, minLength: 3, validate: (value) => { return !!value.trim() } })} name="title" className="appearance-none block w-full bg-grey-200 text-grey-darker border border-grey-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-grey"
+                                        type="text" placeholder="Title" />
+                                    {_.get("title.type", errors) === "required" && (<p className="text-red-500 text-xs italic">Please fill out this field.</p>
+                                    )}
+                                    {_.get("title.type", errors) === "minLength" && (
+                                        <p className="text-red-500 text-xs italic">Title length must be greater than 2</p>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap -mx-3 mb-6">
+                                <div className="w-full px-3">
+                                    <label className="block uppercase tracking-wide text-grey-darker text-xs font-light mb-1">
+                                        Content
+                                    </label>
+                                    <CKEditor
+                                            data={ckContent}
+                                            onChange={editorChange}
+                                    />
+                                     <textarea value={ckContent} ref={register({ required: true, minLength: 3, validate: (value) => { return !!value.trim() } })} name="content" className="appearance-none block w-full bg-grey-200 text-grey-darker border border-grey-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-grey"
+                                        style={{display: "none"}} placeholder="Content" />
+                                    {_.get("content.type", errors) === "required" && (<p className="text-red-500 text-xs italic">Please fill out this field.</p>
+                                    )}
+                                    {_.get("content.type", errors) === "minLength" && (
+                                        <p className="text-red-500 text-xs italic">Content length must be greater than 2</p>
+                                    )}
+                                   
+                                </div>
+                            </div>
+
+                            <div className="px-4 py-3 text-right mt-4 sm:px-6">
+                                {
+                                    buttonLoading ?
+                                        <button disabled type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-400  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Saving...
+                                    </button>
+                                        : <button type="submit" className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Save
+                                    </button>
+                                }
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </Layout>
+
+    )
+}
+
+export default add

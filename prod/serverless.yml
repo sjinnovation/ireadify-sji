@@ -1,0 +1,9 @@
+ireadifyweb:
+  component: "@sls-next/serverless-component@1.17.0"
+  inputs:
+    nextConfigDir: "../"
+    build:
+      env: { NEXT_PUBLIC_LIVE : 'true' }
+    cloudfront:
+      # if you want to use an existing cloudfront distribution, provide it here
+      distributionId: E2VHBO379FLQLH #optional
